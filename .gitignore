@@ -1,0 +1,8 @@
+﻿.settings/language.settings.xml
+*.prefs
+*.o
+*.d
+*.su
+*.mk
+*.list
+*.s
