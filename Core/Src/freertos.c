@@ -33,6 +33,7 @@
 #include "ethernetif.h"
 #include "app_ethernet.h"
 #include "app_debug.h"
+#include "lwip.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,6 +59,7 @@ osThreadId defaultTaskHandle;
 static TaskHandle_t m_task_handle_dhcp = NULL;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+static void Netif_Config(void);
 void dhcp_task(void *argument);
 /* USER CODE END FunctionPrototypes */
 
@@ -89,7 +91,7 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+	  DEBUG_INFO("TEST DEBUG ok\r\n");
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -129,8 +131,10 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
   /* USER CODE BEGIN StartDefaultTask */
+  tcpip_init( NULL, NULL );
+  Netif_Config();
   if (m_task_handle_dhcp == NULL)
   {
 	  xTaskCreate(dhcp_task, "dhcp_task", 4096, NULL, 0, &m_task_handle_dhcp);
@@ -138,9 +142,9 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  DEBUG_INFO("ENTER THE LOOP WAIT THE INPUT\r\n");
+//	  DEBUG_INFO("ENTER THE LOOP WAIT THE INPUT\r\n");
 	  ethernetif_input(&g_netif);
-	  DEBUG_INFO("CHECK TIME OUT \r\n");
+;
 //	  /* Handle timeouts */
 //	  sys_check_timeouts();
 //
@@ -163,7 +167,8 @@ void StartDefaultTask(void const * argument)
 void dhcp_task(void *argument)
 {
 	DEBUG_INFO("ENTER THE DHCP TASK\r\n");
-    ethernet_link_status_updated(&g_netif);
+
+
 	for(;;)
 	{
 
@@ -174,11 +179,54 @@ void dhcp_task(void *argument)
 	  Ethernet_Link_Periodic_Handle(&g_netif);
 #endif
 
-#if LWIP_DHCP
-//	  DEBUG_INFO("DHCP HANDLE\r\n");
-	  DHCP_Periodic_Handle(&g_netif);
-#endif
-	  vTaskDelay(500);
+//#if LWIP_DHCP
+////	  DEBUG_INFO("DHCP HANDLE\r\n");
+//	  DHCP_Periodic_Handle(&g_netif);
+//#endif
+
 	}
+}
+static void Netif_Config(void)
+{
+	ip4_addr_t ipaddr;
+	ip4_addr_t netmask;
+	ip4_addr_t gw;
+	  /* IP addresses initialization with DHCP (IPv4) */
+	  ipaddr.addr = 0;
+	  netmask.addr = 0;
+	  gw.addr = 0;
+
+	  /* add the network interface (IPv4/IPv6) with RTOS */
+	  netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);//&tcpip_input =>null
+
+	  /* Registers the default network interface */
+	  netif_set_default(&g_netif);
+
+	  if (netif_is_link_up(&g_netif))
+	  {
+	    /* When the netif is fully configured this function must be called */
+	    netif_set_up(&g_netif);
+	  }
+	  else
+	  {
+	    /* When the netif link is down this function must be called */
+	    netif_set_down(&g_netif);
+	  }
+
+	  /* Set the link callback function, this function is called on change of link status*/
+	  netif_set_link_callback(&g_netif, ethernet_link_status_updated);
+
+	  /* Create the Ethernet link handler thread */
+	/* USER CODE BEGIN H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
+	  osThreadDef(EthLink, ethernet_link_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE *2);
+	  osThreadCreate (osThread(EthLink), &g_netif);
+	/* USER CODE END H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
+
+	  /* Start DHCP negotiation for a network interface (IPv4) */
+#if LWIP_DHCP
+  /* Start DHCPClient */
+  osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
+  osThreadCreate (osThread(DHCP), &g_netif);
+#endif
 }
 /* USER CODE END Application */

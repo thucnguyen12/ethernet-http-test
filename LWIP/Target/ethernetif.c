@@ -31,6 +31,7 @@
 #include "cmsis_os.h"
 #include "lwip/tcpip.h"
 #include "app_debug.h"
+#include "app_ethernet.h"
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
 
@@ -144,6 +145,7 @@ void pbuf_free_custom(struct pbuf *p);
   */
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *handlerEth)
 {
+
   osSemaphoreRelease(RxPktSemaphore);
 }
 /**
@@ -486,7 +488,7 @@ void ethernetif_input(void const * argument)
       do
       {
         p = low_level_input( netif );
-        DEBUG_RAW("%c \r\n",(char*)(p->payload));
+     //   DEBUG_RAW("%c \r\n",(char*)(p->payload));
         if (p != NULL)
         {
           if (netif->input( p, netif) != ERR_OK )
@@ -799,23 +801,27 @@ void ethernet_link_thread(void const * argument)
 
   struct netif *netif = (struct netif *) argument;
 /* USER CODE BEGIN ETH link init */
-
+  DEBUG_INFO ("enter link thread \r\n");
 /* USER CODE END ETH link init */
 
   for(;;)
   {
-  PHYLinkState = DP83848_GetLinkState(&DP83848);
 
+  PHYLinkState = DP83848_GetLinkState(&DP83848);
   if(netif_is_link_up(netif) && (PHYLinkState <= DP83848_STATUS_LINK_DOWN))
   {
+
     HAL_ETH_Stop_IT(&heth);
     netif_set_down(netif);
     netif_set_link_down(netif);
+
   }
   else if(!netif_is_link_up(netif) && (PHYLinkState > DP83848_STATUS_LINK_DOWN))
   {
+	  DEBUG_INFO("LINK DOWN and change physical link state \r\n");
     switch (PHYLinkState)
     {
+
     case DP83848_STATUS_100MBITS_FULLDUPLEX:
       duplex = ETH_FULLDUPLEX_MODE;
       speed = ETH_SPEED_100M;
@@ -839,6 +845,7 @@ void ethernet_link_thread(void const * argument)
     default:
       break;
     }
+
 
     if(linkchanged)
     {
