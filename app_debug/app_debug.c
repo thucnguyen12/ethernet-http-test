@@ -855,8 +855,14 @@ void app_debug_print_raw(const char *fmt, ...)
             {
                 s = "<NULL>";
             }
-
-            len = __strnlen(s, precision);
+            if (precision > 0)
+            {
+            	len = __strnlen(s, precision);
+            }
+            else
+            {
+            	len = strlen(s);
+            }
             if (!(flags & LEFT))
             {
                 while (len < field_width--)

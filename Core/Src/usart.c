@@ -79,7 +79,7 @@ uint32_t usart_logger_put(const void *buffer, uint32_t size)
     for (uint32_t i = 0; i < size; i++)
     {
         LL_USART_TransmitData8(USART1, data[i]);
-        while (0 == LL_USART_IsActiveFlag_TXE(USART1));
+        while (0 == LL_USART_IsActiveFlag_TC(USART1));
     }
     return size;
 }

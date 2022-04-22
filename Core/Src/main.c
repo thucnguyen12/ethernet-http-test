@@ -96,7 +96,7 @@ int main(void)
   xSemaphoreGive(m_lock_debug);
   app_debug_init(sys_get_ms, lock_debug);
   app_debug_register_callback_print(usart_logger_put);
-  DEBUG_INFO("TEST DEBUG ok\r\n");
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
