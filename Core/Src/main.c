@@ -55,6 +55,7 @@ void MX_FREERTOS_Init(void);
 uint32_t sys_get_ms(void);
 bool lock_debug(bool lock, uint32_t timeout_ms);
 static SemaphoreHandle_t m_lock_debug;
+SemaphoreHandle_t hHttpStart;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/

@@ -260,6 +260,8 @@ void DHCP_Thread(void const * argument)
           DEBUG_INFO("IP address assigned by a DHCP server\r\n");
           DEBUG_INFO("%s\r\n", iptxt);
           DEBUG_INFO("Done\r\n");
+          xSemaphoreGive(hHttpStart);
+          osDelay(500);
         }
         else
         {

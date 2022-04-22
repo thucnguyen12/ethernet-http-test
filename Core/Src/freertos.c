@@ -34,6 +34,10 @@
 #include "app_ethernet.h"
 #include "app_debug.h"
 #include "lwip.h"
+#include "stdio.h"
+#include "app_http.h"
+#include "lwip/dns.h"
+#include "mqtt_client.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,11 +60,12 @@
 struct netif g_netif;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-static TaskHandle_t m_task_handle_dhcp = NULL;
+static TaskHandle_t m_task_handle_http = NULL;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 static void Netif_Config(void);
-void dhcp_task(void *argument);
+void http_task(void *argument);
+static void dns_initialize(void);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -100,6 +105,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+	  hHttpStart = xSemaphoreCreateBinary();
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -135,10 +141,12 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN StartDefaultTask */
   tcpip_init( NULL, NULL );
   Netif_Config();
-  if (m_task_handle_dhcp == NULL)
+  dns_initialize();
+  if (m_task_handle_http == NULL)
   {
-	  xTaskCreate(dhcp_task, "dhcp_task", 4096, NULL, 0, &m_task_handle_dhcp);
+	  xTaskCreate(http_task, "http_task", 4096, NULL, 0, &m_task_handle_http);
   }
+	DEBUG_INFO("DHCP TASK CREATED\r\n");
   /* Infinite loop */
   for(;;)
   {
@@ -164,27 +172,45 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-void dhcp_task(void *argument)
+void http_task(void *argument)
 {
 	DEBUG_INFO("ENTER THE DHCP TASK\r\n");
+	xSemaphoreTake(hHttpStart, portMAX_DELAY);
+	DEBUG_INFO ("PASS SEM TAKE \r\n");
+//	m_http_test_started = true;
 
 
+#if 0
+	// http://httpbin.org/get
+	app_http_config_t http_cfg;
+	sprintf(http_cfg.url, "%s", "httpbin.org");
+	http_cfg.port = 80;
+	sprintf(http_cfg.file, "%s", "/get");
+	http_cfg.on_event_cb = (void*)0;
+	app_http_start(&http_cfg);
+#else
+    mqtt_client_cfg_t mqtt_cfg =
+    {
+        .periodic_sub_req_s = 120,            // second
+        .broker_addr = "broker.hivemq.com",
+        .port = 1883,
+        .password = NULL,
+        .client_id = "test_lwip_porting",
+    };
+    mqtt_client_initialize(&mqtt_cfg);
 	for(;;)
 	{
-
-	  sys_check_timeouts();
-
-#if LWIP_NETIF_LINK_CALLBACK
-//	  DEBUG_INFO("LINK CALLBACK\r\n");
-	  Ethernet_Link_Periodic_Handle(&g_netif);
-#endif
-
-//#if LWIP_DHCP
-////	  DEBUG_INFO("DHCP HANDLE\r\n");
-//	  DHCP_Periodic_Handle(&g_netif);
-//#endif
+		mqtt_client_polling_task(NULL);
+		osDelay(1000);
 
 	}
+#endif
+//	for(;;)
+//	{
+//
+//		osDelay(1000);
+//
+//	}
 }
 static void Netif_Config(void)
 {
@@ -228,5 +254,14 @@ static void Netif_Config(void)
   osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadCreate (osThread(DHCP), &g_netif);
 #endif
+}
+
+static void dns_initialize(void)
+{
+    ip_addr_t dns_server_0 = IPADDR4_INIT_BYTES(8, 8, 8, 8);
+    ip_addr_t dns_server_1 = IPADDR4_INIT_BYTES(1, 1, 1, 1);
+    dns_setserver(0, &dns_server_0);
+    dns_setserver(1, &dns_server_1);
+    dns_init();
 }
 /* USER CODE END Application */

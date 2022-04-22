@@ -9,6 +9,8 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include mqtt/subdir.mk
+-include app_http/subdir.mk
 -include app_ethernet/subdir.mk
 -include app_debug/subdir.mk
 -include Middlewares/Third_Party/LwIP/system/OS/subdir.mk
@@ -18,6 +20,7 @@ RM := rm -rf
 -include Middlewares/Third_Party/LwIP/src/core/ipv4/subdir.mk
 -include Middlewares/Third_Party/LwIP/src/core/subdir.mk
 -include Middlewares/Third_Party/LwIP/src/apps/mqtt/subdir.mk
+-include Middlewares/Third_Party/LwIP/src/apps/http/subdir.mk
 -include Middlewares/Third_Party/LwIP/src/api/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
