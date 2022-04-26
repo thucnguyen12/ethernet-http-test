@@ -38,6 +38,7 @@
 #include "app_http.h"
 #include "lwip/dns.h"
 #include "mqtt_client.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,12 +59,13 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 struct netif g_netif;
+static bool task_created = false;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 static TaskHandle_t m_task_handle_http = NULL;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-static void Netif_Config(void);
+void Netif_Config(void);
 void http_task(void *argument);
 static void dns_initialize(void);
 /* USER CODE END FunctionPrototypes */
@@ -150,21 +152,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-//	  DEBUG_INFO("ENTER THE LOOP WAIT THE INPUT\r\n");
-	  ethernetif_input(&g_netif);
-;
-//	  /* Handle timeouts */
-//	  sys_check_timeouts();
-//
-//  #if LWIP_NETIF_LINK_CALLBACK
-//	  DEBUG_INFO("LINK CALLBACK\r\n");
-//	  Ethernet_Link_Periodic_Handle(&g_netif);
-//  #endif
-//
-//  #if LWIP_DHCP
-//	  DEBUG_INFO("DHCP HANDLE\r\n");
-//	  DHCP_Periodic_Handle(&g_netif);
-//  #endif
+
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
@@ -174,7 +162,7 @@ void StartDefaultTask(void const * argument)
 /* USER CODE BEGIN Application */
 void http_task(void *argument)
 {
-	DEBUG_INFO("ENTER THE DHCP TASK\r\n");
+	DEBUG_INFO("ENTER THE HTTP AND MQTT TASK\r\n");
 	xSemaphoreTake(hHttpStart, portMAX_DELAY);
 	DEBUG_INFO ("PASS SEM TAKE \r\n");
 //	m_http_test_started = true;
@@ -200,6 +188,7 @@ void http_task(void *argument)
     mqtt_client_initialize(&mqtt_cfg);
 	for(;;)
 	{
+		xSemaphoreTake(hHttpStart, portMAX_DELAY);
 		mqtt_client_polling_task(NULL);
 		osDelay(1000);
 
@@ -212,7 +201,7 @@ void http_task(void *argument)
 //
 //	}
 }
-static void Netif_Config(void)
+void Netif_Config(void)
 {
 	ip4_addr_t ipaddr;
 	ip4_addr_t netmask;
@@ -241,11 +230,14 @@ static void Netif_Config(void)
 
 	  /* Set the link callback function, this function is called on change of link status*/
 	  netif_set_link_callback(&g_netif, ethernet_link_status_updated);
-
+	  ethernet_link_status_updated(&g_netif);
+	  if (task_created == false)
+	  {
 	  /* Create the Ethernet link handler thread */
 	/* USER CODE BEGIN H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
 	  osThreadDef(EthLink, ethernet_link_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE *2);
 	  osThreadCreate (osThread(EthLink), &g_netif);
+
 	/* USER CODE END H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
 
 	  /* Start DHCP negotiation for a network interface (IPv4) */
@@ -254,6 +246,8 @@ static void Netif_Config(void)
   osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadCreate (osThread(DHCP), &g_netif);
 #endif
+  	  task_created = true;
+	  }
 }
 
 static void dns_initialize(void)

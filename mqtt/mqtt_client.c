@@ -349,8 +349,8 @@ void mqtt_client_polling_task(void *arg)
         case MQTT_CLIENT_STATE_RESOLVE_HOSTNAME:
             if (!m_is_dns_resolved)
             {
-            	DEBUG_INFO ("DNS RESOLVED \r\n");
-            	DEBUG_INFO ("MQTT TICK: %d\r\n",mqtt_tick);
+            	DEBUG_INFO ("DNS RESOLVING \r\n");
+//            	DEBUG_INFO ("MQTT TICK: %d\r\n",mqtt_tick);
                 if (mqtt_tick >= 5)
                 {
                     mqtt_tick = 0;
@@ -378,7 +378,7 @@ void mqtt_client_polling_task(void *arg)
             }
             else
             {
-            	DEBUG_INFO ("DNS not RESOLVED \r\n");
+            	DEBUG_INFO ("DNS RESOLVED \r\n");
                 mqtt_tick = 9;
                 m_mqtt_state = MQTT_CLIENT_STATE_CONNECTING;
             }

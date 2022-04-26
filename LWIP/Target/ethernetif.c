@@ -804,9 +804,11 @@ void ethernet_link_thread(void const * argument)
 
   if(netif_is_link_up(netif) && (PHYLinkState <= DP83848_STATUS_LINK_DOWN))
   {
+	DEBUG_INFO ("LINK FLAG IS UP BUT PHYSIC STATE NOT OK \r\n");
     HAL_ETH_Stop_IT(&heth);
     netif_set_down(netif);
     netif_set_link_down(netif);
+    DEBUG_INFO ("NET IF SET DOWN \r\n");
   }
   else if(!netif_is_link_up(netif) && (PHYLinkState > DP83848_STATUS_LINK_DOWN))
   {
@@ -838,14 +840,26 @@ void ethernet_link_thread(void const * argument)
 
     if(linkchanged)
     {
+    	DEBUG_INFO ("LINK CHANGED \r\n");
       /* Get MAC Config MAC */
-      HAL_ETH_GetMACConfig(&heth, &MACConf);
+      if (HAL_ETH_GetMACConfig(&heth, &MACConf) == HAL_OK)
+      {
+    	  DEBUG_INFO ("GET MAC OK\r\n");
+      }
       MACConf.DuplexMode = duplex;
       MACConf.Speed = speed;
-      HAL_ETH_SetMACConfig(&heth, &MACConf);
-      HAL_ETH_Start(&heth);
+      if (HAL_ETH_SetMACConfig(&heth, &MACConf))
+      {
+    	  DEBUG_INFO ("SET MAC OK \r\n");
+      }
+      if (HAL_ETH_Start(&heth) == HAL_OK)
+      {
+    	  DEBUG_INFO ("ETH START \r\n");
+      }
       netif_set_up(netif);
+      DEBUG_INFO ("NET SET UP \r\n");
       netif_set_link_up(netif);
+      DEBUG_INFO ("LINK SET UP \r\n");
     }
   }
 

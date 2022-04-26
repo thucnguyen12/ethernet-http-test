@@ -82,6 +82,7 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 extern SemaphoreHandle_t hHttpStart;
+extern struct netif g_netif;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -89,6 +90,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 extern uint32_t sys_get_ms(void);
+extern void Netif_Config(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
