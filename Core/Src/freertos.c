@@ -62,6 +62,7 @@ struct netif g_netif;
 //static bool task_created = false;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
+osThreadId DHCP_id;
 static TaskHandle_t m_task_handle_http = NULL;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -148,33 +149,30 @@ void StartDefaultTask(void const * argument)
   {
 	  xTaskCreate(http_task, "http_task", 4096, NULL, 0, &m_task_handle_http);
   }
-	DEBUG_INFO("DHCP TASK CREATED\r\n");
+
 
 	// dhcp thread
 
 	  /* Create the Ethernet link handler thread */
 	/* USER CODE BEGIN H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
-	  osThreadDef(EthLink, ethernet_link_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE);
-	  osThreadCreate (osThread(EthLink), &g_netif);
+//	  osThreadDef(EthLink, ethernet_link_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE);
+//	  osThreadCreate (osThread(EthLink), &g_netif);
+	  /* Start DHCP negotiation for a network interface (IPv4) */
 
+#if LWIP_DHCP
+	  /* Start DHCPClient */
+	  osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
+	  DHCP_id = osThreadCreate (osThread(DHCP), &g_netif);
+#endif
 	/* USER CODE END H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
 
-	  /* Start DHCP negotiation for a network interface (IPv4) */
-#if LWIP_DHCP
-  /* Start DHCPClient */
-  osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
-  osThreadCreate (osThread(DHCP), &g_netif);
-#endif
+
 
   /* Infinite loop */
   for(;;)
   {
-//		app_debug_isr_ringbuffer_flush();
+
 	  vTaskDelete(defaultTaskHandle);
-
-//	osThreadTerminate(NULL);
-//	DEBUG_INFO ("TASK TERMINATED \r\n");
-
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -209,7 +207,7 @@ void http_task(void *argument)
     mqtt_client_initialize(&mqtt_cfg);
 	for(;;)
 	{
-		xSemaphoreTake(hHttpStart, portMAX_DELAY);
+//		xSemaphoreTake(hHttpStart, portMAX_DELAY);
 		mqtt_client_polling_task(NULL);
 		osDelay(1000);
 
@@ -222,6 +220,8 @@ void http_task(void *argument)
 //
 //	}
 }
+
+
 void Netif_Config (bool restart)
 {
 	ip4_addr_t ipaddr;
@@ -235,17 +235,20 @@ void Netif_Config (bool restart)
 	  {
 			netif_remove (&g_netif);
 			DEBUG_INFO ("NET IF REMOVE \r\n");
-			if (HAL_ETH_DeInit (&heth) == HAL_OK)
-			{
-				DEBUG_INFO ("DEINIT ETH \r\n");
-			}
+	  /* Start DHCP negotiation for a network interface (IPv4) */
+
+//#if LWIP_DHCP
+//	  /* Start DHCPClient */
+//	  osThreadDef(DHCP, DHCP_Thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
+//	  DHCP_id = osThreadCreate (osThread(DHCP), &g_netif);
+//#endif
 	  }
 	  /* add the network interface (IPv4/IPv6) with RTOS */
 	  netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);//&tcpip_input =>null
 
 	  /* Registers the default network interface */
 	  netif_set_default(&g_netif);
-
+	  netif_set_link_callback(&g_netif, ethernet_link_status_updated);
 	  if (netif_is_link_up(&g_netif))
 	  {
 	    /* When the netif is fully configured this function must be called */
@@ -256,11 +259,12 @@ void Netif_Config (bool restart)
 	    /* When the netif link is down this function must be called */
 	    netif_set_down(&g_netif);
 	  }
-
+	  app_ethernet_notification(&g_netif);
 	  /* Set the link callback function, this function is called on change of link status*/
-	  ethernet_link_status_updated(&g_netif);
-	  netif_set_link_callback(&g_netif, ethernet_link_status_updated);
+
+
 	  DEBUG_INFO ("SET LINK CALLBACK \r\n");
+
 }
 
 static void dns_initialize(void)

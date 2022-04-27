@@ -296,22 +296,10 @@ void mqtt_client_polling_task(void *arg)
 {
     static uint8_t mqtt_tick = 0;
     static uint32_t tick = 0, last_time_send_sub_request = 0, last_time_send_hearbeat = 0;
-//    static uint32_t m_current_tick;
-//    uint32_t now = sys_get_tick_ms();
 
-//    if ((now - m_current_tick >= (uint32_t)1000) || m_mqtt_process_now)
-//    {
-//        m_mqtt_process_now = false;
-//        m_current_tick = now;
-//    }
-//    else
-//    {
-//        return;
-//    }
 
     static bool m_mqtt_allow = false;
-//    if (gsm_data_layer_is_ppp_connected())
-//    {
+
 		if (m_mqtt_allow == false)
 		{
 			m_mqtt_allow = true;
@@ -323,16 +311,6 @@ void mqtt_client_polling_task(void *arg)
 
 			DEBUG_INFO("MQTT thread started\r\n");
 		}
-//    }
-//    else
-//    {
-//        if (m_mqtt_allow)
-//        {
-//            DEBUG_INFO("MQTT thread stopped\r\n");
-//        }
-//        m_mqtt_allow = false;
-//    }
-
     if (m_mqtt_allow)
     {
 //    	DEBUG_INFO ("MQTT STATE IS %d \r\n",m_mqtt_state);

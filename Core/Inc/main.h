@@ -84,6 +84,7 @@ extern "C" {
 /* USER CODE BEGIN EM */
 extern SemaphoreHandle_t hHttpStart;
 extern struct netif g_netif;
+extern osThreadId DHCP_id;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
