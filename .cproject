@@ -73,6 +73,7 @@
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/apps/http"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ETHERNET_111/app_http}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ETHERNET_111/mqtt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ETHERNET_111/lwrb}&quot;"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.39177312" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -107,6 +108,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="app_debug"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="app_ethernet"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="app_http"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lwrb"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="mqtt"/>
 					</sourceEntries>
 				</configuration>

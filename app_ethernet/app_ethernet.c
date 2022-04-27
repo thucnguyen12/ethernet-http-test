@@ -68,14 +68,8 @@ void ethernet_link_status_updated(struct netif *netif)
     /* Update DHCP state machine */
     DHCP_state = DHCP_LINK_DOWN;
     DEBUG_INFO("DHCP LINK DOWN STATUS UPDATE\r\n");
-//    netif_set_down(netif);
-//	netif_set_link_down(netif);
-
-		netif_remove (netif);
-		DEBUG_INFO ("REMOVE NETIF\r\n");
-//		netif_is_removed = true;
-		Netif_Config();
-		DEBUG_INFO ("NET CONFIG AGAIN \r\n");
+    Netif_Config(true);
+	DEBUG_INFO ("NET CONFIG AGAIN \r\n");
 
   }
 #endif
@@ -142,6 +136,7 @@ void DHCP_Thread(void const * argument)
         if (dhcp_is_start != true)
         {
         	DEBUG_INFO ("get in function \r\n");
+        	osDelay (1);
         	dhcp_start (netif);
 //        	netif_is_removed = false;
         	dhcp_is_start = true;
@@ -188,14 +183,6 @@ void DHCP_Thread(void const * argument)
             IP_ADDR4(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
             netif_set_addr(netif, ip_2_ip4(&ipaddr), ip_2_ip4(&netmask), ip_2_ip4(&gw));
 
-#ifdef USE_LCD
-            sprintf((char *)iptxt, "%s", ip4addr_ntoa(netif_ip4_addr(netif)));
-            LCD_UsrLog ("DHCP Timeout !! \n");
-            LCD_UsrLog ("Static IP address: %s\n", iptxt);
-#else
-//            BSP_LED_On(LED1);
-//            BSP_LED_Off(LED2);
-#endif
             sprintf((char *)iptxt, "%s", ip4addr_ntoa(netif_ip4_addr(netif)));
             DEBUG_ERROR ("DHCP Timeout !! \n");
             DEBUG_INFO ("Static IP address: %s\n", iptxt);
@@ -211,8 +198,8 @@ void DHCP_Thread(void const * argument)
     break;
     case DHCP_TIMEOUT:
     {
-//    	xSemaphoreGive(hHttpStart);
-    	DHCP_state = DHCP_START;
+    	xSemaphoreGive(hHttpStart);
+//    	DHCP_state = DHCP_START;
     }
     	break;
     case DHCP_LINK_DOWN:
@@ -222,15 +209,8 @@ void DHCP_Thread(void const * argument)
       {
     	  dhcp_stop (netif);
     	  dhcp_is_start = false;
-    	  DEBUG_INFO ("DHCP STOP \r\n");
+    	  DEBUG_INFO ("DHCP STOPPED \r\n");
       }
-
-#ifdef USE_LCD
-      LCD_UsrLog ("The network cable is not connected \n");
-#else
-//      BSP_LED_Off(LED1);
-//      BSP_LED_On(LED2);
-#endif
       DEBUG_INFO ("DHCPLINK DOWN\r\n");
     }
     break;

@@ -44,6 +44,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cmsis_os.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -53,18 +54,18 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define DEST_IP_ADDR0   (uint8_t) 10
-#define DEST_IP_ADDR1   (uint8_t) 157
-#define DEST_IP_ADDR2   (uint8_t) 11
-#define DEST_IP_ADDR3   (uint8_t) 162
+#define DEST_IP_ADDR0   (uint8_t) 52
+#define DEST_IP_ADDR1   (uint8_t) 59
+#define DEST_IP_ADDR2   (uint8_t) 17
+#define DEST_IP_ADDR3   (uint8_t) 149
 
 #define DEST_PORT       ((uint16_t)7U)
 
 /*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
 #define IP_ADDR0   ((uint8_t) 192U)
 #define IP_ADDR1   ((uint8_t) 168U)
-#define IP_ADDR2   ((uint8_t) 0U)
-#define IP_ADDR3   ((uint8_t) 10U)
+#define IP_ADDR2   ((uint8_t) 1U)
+#define IP_ADDR3   ((uint8_t) 45U)
 
 /*NETMASK*/
 #define NETMASK_ADDR0   ((uint8_t) 255U)
@@ -90,7 +91,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 extern uint32_t sys_get_ms(void);
-extern void Netif_Config(void);
+extern void Netif_Config(bool restart);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

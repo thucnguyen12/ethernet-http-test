@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -180,7 +181,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
 void ETH_IRQHandler(void)
 {
   /* USER CODE BEGIN ETH_IRQn 0 */
-
+//  DEBUG_ISR ("ETHERNET INT \r\n");
   /* USER CODE END ETH_IRQn 0 */
   HAL_ETH_IRQHandler(&heth);
   /* USER CODE BEGIN ETH_IRQn 1 */
@@ -194,7 +195,7 @@ void ETH_IRQHandler(void)
 void ETH_WKUP_IRQHandler(void)
 {
   /* USER CODE BEGIN ETH_WKUP_IRQn 0 */
-
+//  DEBUG_ISR ("WAKEUP INT \r\n");
   /* USER CODE END ETH_WKUP_IRQn 0 */
   HAL_ETH_IRQHandler(&heth);
   /* USER CODE BEGIN ETH_WKUP_IRQn 1 */

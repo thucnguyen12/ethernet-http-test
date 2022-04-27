@@ -32,6 +32,7 @@
 #include "lwip/tcpip.h"
 #include "app_debug.h"
 #include "app_ethernet.h"
+#include "stdbool.h"
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
 
@@ -307,8 +308,13 @@ static void low_level_init(struct netif *netif)
 
   /* create the task that handles the ETH_MAC */
 /* USER CODE BEGIN OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
-  osThreadDef(EthIf, ethernetif_input, osPriorityRealtime, 0, INTERFACE_THREAD_STACK_SIZE);
-  osThreadCreate (osThread(EthIf), netif);
+//static bool input_task = false;
+//  if (input_task == false)
+//  {
+	  osThreadDef(EthIf, ethernetif_input, osPriorityRealtime, 0, INTERFACE_THREAD_STACK_SIZE);
+	  osThreadCreate (osThread(EthIf), netif);
+//	  input_task = true;
+//  }
 /* USER CODE END OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
 
 /* USER CODE BEGIN PHY_PRE_CONFIG */
@@ -807,8 +813,9 @@ void ethernet_link_thread(void const * argument)
 	DEBUG_INFO ("LINK FLAG IS UP BUT PHYSIC STATE NOT OK \r\n");
     HAL_ETH_Stop_IT(&heth);
     netif_set_down(netif);
-    netif_set_link_down(netif);
     DEBUG_INFO ("NET IF SET DOWN \r\n");
+    netif_set_link_down(netif);
+    DEBUG_INFO ("NET IF link SET DOWN \r\n");
   }
   else if(!netif_is_link_up(netif) && (PHYLinkState > DP83848_STATUS_LINK_DOWN))
   {
